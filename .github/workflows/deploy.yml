@@ -1,11 +1,10 @@
-name: Build and deploy JAR app to Azure Web App - Prueba-preparcial
+name: Build and deploy JAR app to Azure Web App - preparcialfinal
 
 on:
   push:
     branches:
-
-  main
-workflow_dispatch:
+      - main
+  workflow_dispatch:
 
 jobs:
   build:
@@ -14,26 +13,22 @@ jobs:
       contents: read
 
     steps:
+      - uses: actions/checkout@v4
 
-uses: actions/checkout@v4
+      - name: Set up Java version
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'microsoft'
 
+      - name: Build with Maven
+        run: mvn clean install
 
-name: Set up Java version
-  uses: actions/setup-java@v4
-  with:
-    java-version: '17'
-    distribution: 'microsoft'
-
-
-name: Build with Maven
-  run: mvn clean install
-
-
-name: Upload Artifact
-  uses: actions/upload-artifact@v4
-  with:
-    name: java-app
-    path: target/*.jar
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: java-app
+          path: target/*.jar
 
 
   test:
@@ -43,27 +38,23 @@ name: Upload Artifact
       contents: read
 
     steps:
+      - uses: actions/checkout@v4
 
-uses: actions/checkout@v4
+      - name: Set up Java version
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'microsoft'
 
+      - name: Run Maven Tests
+        run: mvn test
 
-name: Set up Java version
-  uses: actions/setup-java@v4
-  with:
-    java-version: '17'
-    distribution: 'microsoft'
-
-
-name: Run Maven Tests
-  run: mvn test
-
-
-name: Upload Test Report
-  uses: actions/upload-artifact@v4
-  if: success() || failure()
-  with:
-    name: spring-boot-test-report
-    path: target/surefire-reports/
+      - name: Upload Test Report
+        uses: actions/upload-artifact@v4
+        if: success() || failure()
+        with:
+          name: spring-boot-test-report
+          path: target/surefire-reports/
 
 
   deploy:
@@ -77,19 +68,17 @@ name: Upload Test Report
       contents: read
 
     steps:
-
-name: Download artifact from build job
-  uses: actions/download-artifact@v4
-  with:
-    name: java-app
-    path: .
-
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: java-app
+          path: .
 
 
-name: Deploy to Azure Web App
-  id: deploy-to-webapp
-  uses: azure/webapps-deploy@v2
-  with:
-    app-name: 'preparcialfinal'
-    publish-profile: '${{ secrets.AZURE_PUBLISH_PROFILE }}'
-    package: '*.jar'
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'preparcialfinal'
+          publish-profile: '${{ secrets.AZURE_PUBLISH_PROFILE }}'
+          package: '*.jar'
